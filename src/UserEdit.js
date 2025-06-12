@@ -1,4 +1,3 @@
-// src/UserEdit.js (atau src/resources/UserEdit.js)
 import React from 'react';
 import { Edit, SimpleForm, TextInput, SelectInput, DateInput } from 'react-admin';
 
@@ -13,7 +12,6 @@ export const UserEdit = (props) => (
                 { id: 'admin', name: 'Admin' },
                 { id: 'mentor', name: 'Mentor' }, 
             ]} />
-            {/* Tambahkan field lain yang ingin Anda edit, misalnya photoUrl, birth, dll. */}
             <TextInput source="photoUrl" label="Photo URL" />
             <DateInput source="birth" label="Birth Date" />
         </SimpleForm>
