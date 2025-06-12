@@ -1,4 +1,3 @@
-// src/MyLoginPage.js
 import * as React from 'react';
 import { Login, TextInput } from 'react-admin';
 import { CardContent } from '@mui/material'; // Opsional, untuk padding standar jika diperlukan
@@ -13,20 +12,17 @@ const MyLoginPage = props => (
         <CardContent> {/* Opsional: agar ada padding seperti form default */}
             <TextInput
                 autoFocus
-                source="username" // PENTING: 'source' harus tetap "username" karena itu yang diharapkan oleh authProvider Anda
-                label="Alamat Email" // INI LABEL BARU ANDA
-                // Anda bisa menambahkan validasi jika perlu, contoh:
-                // validate={required('Email tidak boleh kosong')}
+                source="username" 
+                label="Alamat Email" 
                 fullWidth
-                // required // Atribut HTML5 untuk input wajib diisi
             />
             <TextInput
-                source="password" // 'source' harus "password"
-                label="Password"   // Anda juga bisa ganti ini jika mau, misal "Kata Sandi"
+                source="password" 
+                label="Password"   
                 type="password"
-                // validate={required('Password tidak boleh kosong')}
+                
                 fullWidth
-                // required
+                
             />
         </CardContent>
         {/* Tombol submit akan dirender secara otomatis oleh komponen <Login> */}
