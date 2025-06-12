@@ -9,19 +9,15 @@ const FirebaseTimestampField = (props) => {
     return <DateField record={{ ...record, [props.source]: new Date(date.seconds * 1000) }} {...props} />;
 };
 export const FavoriteList = (props) => (
-  <List {...props} title="My Favorites" /* filterDefaultValues={{ userId: auth.currentUser?.uid }} // Ini tidak perlu jika filter di dataProvider */ >
+  <List {...props} title="My Favorites" >
     <Datagrid>
-      {/* ID dokumen favorit di Firestore, mungkin tidak perlu ditampilkan ke user */}
-      {/* <TextField source="id" label="Favorite Doc ID" /> */}
 
-      {/* userId mungkin tidak perlu ditampilkan jika list ini sudah difilter untuk user tertentu */}
-      {/* <TextField source="userId" label="User ID" /> */}
 
       <ReferenceField label="Artikel yang Difavoritkan" source="articleId" reference="artikels" link="show">
         <TextField source="title" />
       </ReferenceField>
       <FirebaseTimestampField source="createdAt" label="Tanggal Difavoritkan" showTime />
-      {/* Tambahkan tombol delete jika perlu */}
+      
     </Datagrid>
   </List>
 );
