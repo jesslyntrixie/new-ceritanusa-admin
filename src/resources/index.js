@@ -18,6 +18,14 @@ import {
   FunctionField
 } from 'react-admin';
 
+const API_URL = 'https://web-production-06f9.up.railway.app';
+
+export const resolveImageUrl = (url) => {
+  if (typeof url === 'string' && url.startsWith('/api')) {
+    return `${API_URL}${url}`;
+  }
+  return url;
+};
 
 // Artikel
 export const ArtikelList = (props) => (
@@ -27,22 +35,22 @@ export const ArtikelList = (props) => (
             <TextField source="author" />
             <DateField source="created_at" />
 
-            {/* Komponen ImageField asli Anda, bisa Anda komentari atau hapus jika FunctionField di bawah sudah cukup */}
-            {/* <ImageField source="image" title="title" /> */}
-
-            {/* Menggunakan FunctionField untuk logging dan kemudian merender ImageField */}
+          
             <FunctionField
                 label="Image Debug"
                 render={record => {
                     console.log('[ArtikelList] Rendering record.image:', record.image);
                     console.log('[ArtikelList] typeof record.image:', typeof record.image);
-                    // Anda bisa kembalikan <ImageField> di sini jika record.image adalah string
-                    if (record.image && typeof record.image === 'string') {
-                        return <ImageField record={record} source="image" title="title" />;
+
+                    const imageUrl = resolveImageUrl(record.image);
+                    if (imageUrl) {
+                        return <img src={imageUrl} alt="thumbnail" style={{ width: 100 }} />;
                     }
-                    return <span>{typeof record.image === 'object' ? 'Image is an object!' : 'No image string'}</span>;
+                    return <span>No image</span>;
                 }}
             />
+
+
         </Datagrid>
     </List>
 );
@@ -126,15 +134,24 @@ export const QuizEdit = (props) => (
                 <SimpleFormIterator>
                     <TextInput source="text" label="Question Text" fullWidth />
 
-                    {/* BAGIAN UNTUK MENAMPILKAN GAMBAR YANG SUDAH ADA */}
-                    {/* 'image' di sini adalah field yang berisi URL gambar dari backend */}
+                  
                     <ImageField source="image" title="Current Image" label="Current Question Image" sx={{ '& img': { maxWidth: 200, maxHeight: 200, objectFit: 'contain' } }} />
 
-                    {/* BAGIAN UNTUK UPLOAD ATAU MENGGANTI GAMBAR */}
+                   
                     <ImageInput source="image" label="New/Change Question Image" accept="image/*">
                         <ImageField source="src" title="title" />
                     </ImageInput>
-
+                    <FunctionField
+                      label="Quiz Image"
+                      render={record => {
+                        const imageUrl = resolveImageUrl(record.image);
+                        return imageUrl ? (
+                          <img src={imageUrl} alt="Quiz" style={{ width: 100 }} />
+                        ) : (
+                          <span>No image</span>
+                        );
+                      }}
+                    />
                     <ArrayInput source="choices" label="Choices">
                         <SimpleFormIterator>
                             <TextInput source="text" label="Choice Text" />
