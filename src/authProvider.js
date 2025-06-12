@@ -1,16 +1,11 @@
-// src/authProvider.js
 import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { auth, db } from './firebase'; // Impor instance auth dan db dari firebase.js
+import { auth, db } from './firebase'; 
 import { doc, getDoc } from "firebase/firestore";
 
-// HAPUS DAFTAR UID ADMIN YANG DI-HARDCODE
-// const ADMIN_UIDS = [
-//   "CUZrt0jhYsRyZ7y1JY8KF8TsMty1"
-// ];
 
 const authProvider = {
   // Dipanggil saat pengguna mencoba login
@@ -24,8 +19,7 @@ const authProvider = {
 
         if (userDocSnap.exists() && userDocSnap.data().role === 'admin') { // Asumsi field peran bernama 'role'
           localStorage.setItem('firebaseUser', JSON.stringify(userCredential.user));
-          // Anda mungkin ingin menyimpan data peran juga jika sering diakses
-          // localStorage.setItem('userRole', userDocSnap.data().role); 
+
           return Promise.resolve();
         } else {
           // Jika dokumen tidak ada atau peran bukan 'admin'
@@ -55,7 +49,7 @@ const authProvider = {
   // Dipanggil saat pengguna logout
   logout: () => {
     localStorage.removeItem('firebaseUser');
-    // localStorage.removeItem('userRole'); // Hapus juga jika Anda menyimpannya
+    
     return signOut(auth);
   },
 
@@ -112,7 +106,6 @@ const authProvider = {
   getIdentity: async () => {
     // Coba ambil dari localStorage dulu untuk efisiensi
     const userString = localStorage.getItem('firebaseUser');
-    // auth.currentUser mungkin belum terisi saat awal load, jadi localStorage lebih diandalkan di sini
     const firebaseUser = userString ? JSON.parse(userString) : auth.currentUser;
 
 
