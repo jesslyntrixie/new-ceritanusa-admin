@@ -1,13 +1,12 @@
-// src/users.js
 import React from 'react';
 import { List, Datagrid, TextField, EmailField, DateField, FunctionField } from 'react-admin';
 
 
 export const UserList = (props) => (
     <List {...props}>
-        <Datagrid rowClick="edit"> {/* atau "show" */}
+        <Datagrid rowClick="edit"> 
             <TextField source="id" />
-            <TextField source="userName" label="Name" /> {/* <<< INI YANG PENTING */}
+            <TextField source="userName" label="Name" /> 
             <EmailField source="email" />
             <TextField source="role" />
             <DateField source="birth" label="Birth Date" locales="id-ID" options={{ year: 'numeric', month: 'long', day: 'numeric' }} />
