@@ -12,23 +12,13 @@ import {
   query,
   where,
   Timestamp,
-  // limit, // Uncomment jika perlu paginasi Firestore
-  // orderBy, // Uncomment jika perlu sorting Firestore
-  // getCountFromServer // Untuk total count akurat di Firestore
 } from "firebase/firestore";
 
-// URL untuk backend Django Anda (TANPA slash di akhir)
+
 const API_URL_DJANGO = 'https://web-production-06f9.up.railway.app/api';
 
-// HttpClient untuk Django (menangani JSON dan FormData)
 const djangoHttpClient = async (url, options = {}) => {
     const headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers);
-    
-    // Contoh jika API Django Anda pakai token dari localStorage (sesuaikan jika perlu)
-    // const djangoToken = localStorage.getItem('djangoApiToken');
-    // if (djangoToken) {
-    //     headers.set('Authorization', `Bearer ${djangoToken}`);
-    // }
 
     if (!(options.body instanceof FormData)) {
         // Untuk request JSON
@@ -42,21 +32,18 @@ const djangoHttpClient = async (url, options = {}) => {
             options.body = JSON.stringify(options.body);
         }
     } else {
-        // Untuk FormData, browser akan set Content-Type. Kita hanya perlu Accept.
         if (!headers.has('Accept')) {
             headers.set('Accept', 'application/json');
         }
-        headers.delete('Content-Type'); // Penting! Biarkan browser set untuk FormData
+        headers.delete('Content-Type'); 
     }
     options.headers = headers;
 
     console.log('[djangoHttpClient] Requesting URL:', url);
-    // Hati-hati dengan JSON.stringify(options) jika body besar atau circular. Cukup log url dan method.
     console.log('[djangoHttpClient] Method:', options.method); 
     if (options.body instanceof FormData) {
         console.log('[djangoHttpClient] Body is FormData. Entries:');
         for (let pair of options.body.entries()) {
-            // Jangan log pair[1] jika itu File object besar, cukup nama & tipe
             console.log(pair[0]+ ', ' + (pair[1] instanceof File ? `File: ${pair[1].name} (type: ${pair[1].type})` : pair[1]));
         }
     } else {
@@ -88,7 +75,7 @@ const djangoDataProvider = {
     } else if (resource === 'favorites' && (!params.filter || !params.filter.userId)) {
         // Handle kasus di mana userId tidak tersedia untuk resource favorites
         console.warn("[Django getList] userId filter is required for 'favorites' resource to call Django API.");
-        return { data: [], total: 0 }; // Kembalikan kosong atau error
+        return { data: [], total: 0 }; 
     } else {
         url = `${API_URL_DJANGO}/${resource}/?${queryParams.toString()}`;
     }
@@ -206,7 +193,7 @@ const djangoDataProvider = {
         console.log(`[Django UPDATE ${resource}] Original params.data:`, JSON.parse(JSON.stringify(params.data)));
 
         console.log(`[Django UPDATE ${resource}] URL: ${url}`);
-        // Log the specific part of params.data you're interested in
+        // Log the specific part of params.data we re interested in
         if (resource === 'quizzes') {
             console.log('[Django UPDATE quizzes] Original params.data.questions:', JSON.parse(JSON.stringify(params.data.questions)));
             params.data.questions.forEach((question, index) => {
@@ -306,7 +293,7 @@ const djangoDataProvider = {
         // Asumsi API mengembalikan array untuk getMany, atau sesuaikan jika formatnya beda
         return { data: Array.isArray(json) ? json : (json && Array.isArray(json.results) ? json.results : []) };
     },
-    // Di dalam objek djangoDataProvider
+
 getManyReference: async (resource, params) => {
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
@@ -336,12 +323,10 @@ getManyReference: async (resource, params) => {
     console.log(`[Django getManyReference] Requesting: ${url} for resource ${resource} with main ID: ${params.id}`);
     const { headers, json } = await djangoHttpClient(url);
 
-    // Pastikan ini menangani struktur respons dari API Django Anda (/api/favorites/<user_id>/)
-    // API Django Anda (FavoriteListByUserView) mengembalikan array langsung:
     if (Array.isArray(json)) {
          const total = headers && headers.has('x-total-count')
                          ? parseInt(headers.get('x-total-count'), 10)
-                         : json.length; // Jika Django tidak mengirim x-total-count, kita gunakan panjang array
+                         : json.length; 
          console.log(`[Django getManyReference] Received data for ${resource}. Total: ${total}. Data sample:`, json.slice(0,1));
          return { data: json, total };
     } else if (json && typeof json.count === 'number' && Array.isArray(json.results)) { // Untuk API DRF standar
@@ -359,36 +344,29 @@ getManyReference: async (resource, params) => {
 // --- DataProvider untuk Firebase (Firestore) ---
 const firestoreDataProvider = {
     getList: async (resource, params) => {
-        console.log(`[Firestore getList] For resource: ${resource}, Params:`, params); //
-        const collRef = collection(db, resource); //
-        let q = query(collRef); //
-        const { filter } = params; //
+        console.log(`[Firestore getList] For resource: ${resource}, Params:`, params); 
+        const collRef = collection(db, resource); 
+        let q = query(collRef); 
+        const { filter } = params; 
 
-        // Removed the 'favorites' specific user filter as per your last requirement
-        // for the admin to see all favorites.
-
-        if (resource === 'users' && filter && filter.role) { //
-            console.log(`[Firestore getList] Filtering users by role: ${filter.role}`); //
-            q = query(q, where("role", "==", filter.role)); //
+        if (resource === 'users' && filter && filter.role) { 
+            console.log(`[Firestore getList] Filtering users by role: ${filter.role}`); 
+            q = query(q, where("role", "==", filter.role)); 
         }
-        // Optional: Admin filtering for favorites via UI
-        // else if (resource === 'favorites' && filter && filter.userId) {
-        //     console.log(`[Firestore getList] Admin is filtering favorites by userId: ${filter.userId}`);
-        //     q = query(q, where("userId", "==", filter.userId));
-        // }
+      
 
-        const snapshot = await getDocs(q); //
+        const snapshot = await getDocs(q); 
 
-        const processedData = snapshot.docs.map(docSnapshot => { //
-            const docData = { id: docSnapshot.id, ...docSnapshot.data() }; //
-            return convertTimestampsAndDateStringsToDates(docData); //
+        const processedData = snapshot.docs.map(docSnapshot => { 
+            const docData = { id: docSnapshot.id, ...docSnapshot.data() }; 
+            return convertTimestampsAndDateStringsToDates(docData); 
         });
 
-        const total = processedData.length; //
+        const total = processedData.length; 
 
         console.log(`[Firestore getList] Data for ${resource}:`, processedData, `Total reported: ${total}`); //
-        // CRITICAL LINE: Ensure this is the exact return structure
-        return { data: processedData, total: total }; //
+        
+        return { data: processedData, total: total }; 
     },
     getOne: async (resource, params) => {
         console.log(`[Firestore getOne] For resource: ${resource}, ID: ${params.id}`);
@@ -407,19 +385,19 @@ const firestoreDataProvider = {
         let dataToCreate = { ...params.data };
         delete dataToCreate.id;
 
-        // Logika spesifik resource untuk createdAt/updatedAt dan konversi field tanggal SEBELUM kirim ke Firestore
-        if (resource === 'users' || resource === 'mentors' /* || resource === 'admins' */) {
-            dataToCreate.createdAt = Timestamp.now(); // Simpan sebagai Timestamp
+
+        if (resource === 'users' || resource === 'mentors' ) {
+            dataToCreate.createdAt = Timestamp.now(); 
             if (dataToCreate.hasOwnProperty('birth')) {
                 if (dataToCreate.birth && dataToCreate.birth instanceof Date) {
-                    dataToCreate.birth = Timestamp.fromDate(dataToCreate.birth); // Ubah JS Date ke Timestamp Firestore
+                    dataToCreate.birth = Timestamp.fromDate(dataToCreate.birth);
                 } else if (typeof dataToCreate.birth === 'string' && !isNaN(new Date(dataToCreate.birth))) {
-                    dataToCreate.birth = Timestamp.fromDate(new Date(dataToCreate.birth)); // Ubah string tanggal valid ke Timestamp
+                    dataToCreate.birth = Timestamp.fromDate(new Date(dataToCreate.birth)); 
                 } else if (dataToCreate.birth === undefined || dataToCreate.birth === '' || dataToCreate.birth === null) {
                     dataToCreate.birth = null;
                 }
             }
-            // ... (logika photoUrl Anda jika ada) ...
+
         }
          const docRef = await addDoc(collection(db, resource), dataToCreate);
         const newDocSnap = await getDoc(docRef); // Ambil data yang baru saja dibuat dari Firestore
@@ -433,22 +411,22 @@ const firestoreDataProvider = {
         let dataToUpdate = { ...params.data };
         delete dataToUpdate.id;
 
-        // Logika spesifik resource untuk createdAt/updatedAt dan konversi field tanggal SEBELUM kirim ke Firestore
-        if (resource === 'users' || resource === 'mentors' /* || resource === 'admins' */) {
-            dataToUpdate.updatedAt = Timestamp.now(); // Simpan sebagai Timestamp
+      
+        if (resource === 'users' || resource === 'mentors' ) {
+            dataToUpdate.updatedAt = Timestamp.now(); 
             if (dataToUpdate.hasOwnProperty('birth')) {
                 if (dataToUpdate.birth && dataToUpdate.birth instanceof Date) {
-                    dataToUpdate.birth = Timestamp.fromDate(dataToUpdate.birth); // Ubah JS Date ke Timestamp Firestore
+                    dataToUpdate.birth = Timestamp.fromDate(dataToUpdate.birth); 
                 } else if (typeof dataToUpdate.birth === 'string' && !isNaN(new Date(dataToUpdate.birth))) {
-                    dataToUpdate.birth = Timestamp.fromDate(new Date(dataToUpdate.birth)); // Ubah string tanggal valid ke Timestamp
+                    dataToUpdate.birth = Timestamp.fromDate(new Date(dataToUpdate.birth)); 
                 } else if (dataToUpdate.birth === undefined || dataToUpdate.birth === '' || dataToUpdate.birth === null) {
                     dataToUpdate.birth = null;
                 }
             }
-            // ... (logika photoUrl Anda jika ada) ...
+            
         }
         await updateDoc(docRef, dataToUpdate);
-        const updatedDocSnap = await getDoc(docRef); // Ambil data yang baru saja diupdate dari Firestore
+        const updatedDocSnap = await getDoc(docRef); 
         const responseData = updatedDocSnap.data();
        
         return { data: { id: updatedDocSnap.id, ...convertTimestampsAndDateStringsToDates(responseData) } };
@@ -476,7 +454,7 @@ const firestoreDataProvider = {
     getManyReference: async (resource, params) => {
         console.log(`[Firestore getManyReference] For resource: ${resource}, Target: ${params.target}, ID: ${params.id}`);
         let q = query(collection(db, resource), where(params.target, "==", params.id));
-        // TODO: Implement sorting (orderBy) dan pagination (limit, startAfter) untuk Firestore
+        
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() }));
         console.log(`[Firestore getManyReference] Data for ${resource}:`, data);
@@ -510,13 +488,11 @@ const firestoreDataProvider = {
 // --- Wrapper DataProvider (Utama) ---
 const dataProvider = {
     getList: (resource, params) => {
-        if (['users', 'mentors'].includes(resource)) { // 'favorites' mungkin tidak lagi diambil dari Firestore untuk daftar umum
+        if (['users', 'mentors'].includes(resource)) { 
             return firestoreDataProvider.getList(resource, params);
         }
-        // Jika Anda ingin 'favorites' diambil dari Django dengan filter userId:
         if (resource === 'favorites') {
-            // Pastikan params.filter.userId ada dan digunakan untuk membangun URL yang benar di djangoDataProvider.getList
-            // Jika tidak ada userId, mungkin kembalikan data kosong atau error karena Django API Anda memerlukan userId.
+           
             if (!params.filter || !params.filter.userId) {
                 console.warn('[dataProvider] User ID filter is required to get favorites from Django.');
                 return Promise.resolve({ data: [], total: 0 });
@@ -525,9 +501,9 @@ const dataProvider = {
         }
         return djangoDataProvider.getList(resource, params);
     },
-    getOne: (resource, params) => { // Jika melihat detail satu item favorit dari Django
+    getOne: (resource, params) => { 
         if (resource === 'favorites') {
-            return djangoDataProvider.getOne(resource, params); // Pastikan URL di djangoDataProvider.getOne sesuai
+            return djangoDataProvider.getOne(resource, params); 
         }
         if (['users', 'mentors'].includes(resource)) {
             return firestoreDataProvider.getOne(resource, params);
@@ -548,11 +524,11 @@ const dataProvider = {
         if (['users', 'mentors'].includes(resource)) {
             return firestoreDataProvider.getManyReference(resource, params);
         }
-        return djangoDataProvider.getManyReference(resource, params); // Atau default lain yang sesuai
+        return djangoDataProvider.getManyReference(resource, params); 
     },
     create: (resource, params) => {
         if (resource === 'favorites') {
-            // Pastikan params.data.userId ada jika Django membutuhkannya
+            
             return djangoDataProvider.create(resource, params);
         }
         if (['users', 'mentors'].includes(resource)) {
@@ -597,7 +573,7 @@ const convertTimestampsAndDateStringsToDates = (docData) => {
     for (const key in data) {
         if (data[key] && typeof data[key].toDate === 'function') { // Firestore Timestamp
             data[key] = data[key].toDate();
-        } else if (key === 'birth' && typeof data[key] === 'string' && !isNaN(new Date(data[key]))) { // Khusus untuk field 'birth' jika string
+        } else if (key === 'birth' && typeof data[key] === 'string' && !isNaN(new Date(data[key]))) { 
             data[key] = new Date(data[key]);
         }
     }
